@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: f0a0ab67bba41a741875f34ae6e9e708
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Stone: {fileID: 5629914123393478972, guid: b1679932e1b2afe4da1246a9a50a8e62, type: 3}
+  - LeftStone: {instanceID: 0}
+  - RightStone: {instanceID: 0}
+  - UpStone: {instanceID: 0}
+  - DownStone: {instanceID: 0}
+  - LeftUpStone: {instanceID: 0}
+  - RightUpStone: {instanceID: 0}
+  - LeftDownStone: {instanceID: 0}
+  - RightDownStone: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

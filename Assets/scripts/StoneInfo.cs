@@ -6,14 +6,13 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class StoneInfo : MonoBehaviour
 {
-    public GameObject StonePrefab { get; private set; } = null;
+    public GameObject StoneGameObject { get; set; } = null;
     private AsyncOperationHandle<GameObject> OperationHandle;
-    [SerializeField]
-    private string STONEPREFAB_KEY = "Stone";
+    
     public StoneStatus Status { get; set; } = StoneStatus.None;
     public PutStonePossibility PutPossibility { get; set; } = PutStonePossibility.Impossible;
 
-    public Vector3 StonePosition { get; private set; } = Vector3.zero;
+    public Vector3 StonePosition { get; set; } = Vector3.zero;
 
     public Quaternion StoneQuaternion
     {
@@ -79,14 +78,9 @@ public class StoneInfo : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    private async void Start()
+    private void Start()
     {
-        OperationHandle = Addressables.LoadAssetAsync<GameObject>(STONEPREFAB_KEY);
-        await OperationHandle.Task;
-        StonePrefab = OperationHandle.Result;
-        Addressables.Release(OperationHandle);
-
-        StonePosition = transform.position + new Vector3(0f, 0.5f, 0f);
+        
     }
 
     // Update is called once per frame

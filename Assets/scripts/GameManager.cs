@@ -7,10 +7,14 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class GameManager : MonoBehaviour
 {
-    private GameObject BlockPrefab = null;
-    private AsyncOperationHandle<GameObject> OperationHandle;
+    private GameObject StonePrefab { get; set; } = null;
+    private GameObject BlockPrefab { get; set; } = null;
+    private AsyncOperationHandle<GameObject> BlockOperationHandle;
+    private AsyncOperationHandle<GameObject> StoneOperationHandle;
     [SerializeField]
     private string BLOCKPREFAB_KEY = "Block";
+    [SerializeField]
+    private string STONEPREFAB_KEY = "Stone";
     [SerializeField]
     private Vector3 BlockGenerationStartPos = Vector3.zero;
     private const float SLIDE_NUM = 9.5f;
@@ -34,13 +38,20 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     private async void Start()
     {
-        OperationHandle = Addressables.LoadAssetAsync<GameObject>(BLOCKPREFAB_KEY);
-        await OperationHandle.Task;
-        BlockPrefab = OperationHandle.Result;
-        Addressables.Release(OperationHandle);
+        BlockOperationHandle = Addressables.LoadAssetAsync<GameObject>(BLOCKPREFAB_KEY);
+        await BlockOperationHandle.Task;
+        BlockPrefab = BlockOperationHandle.Result;
+        Addressables.Release(BlockOperationHandle);
+
+        StoneOperationHandle = Addressables.LoadAssetAsync<GameObject>(STONEPREFAB_KEY);
+        await StoneOperationHandle.Task;
+        StonePrefab = StoneOperationHandle.Result;
+        Addressables.Release(StoneOperationHandle);
+
 
         InstantiateBlocks();
         StoneConnecting();
+        StartStoneSetting();
     }
 
     // Update is called once per frame
@@ -62,11 +73,12 @@ public class GameManager : MonoBehaviour
             {
                 vec = new Vector3(BlockGenerationStartPos.x + i * SLIDE_NUM, BlockGenerationStartPos.y, BlockGenerationStartPos.z + j * SLIDE_NUM);
                 GameObject gameObject = Instantiate(BlockPrefab, vec, Quaternion.identity);
-                infos.Add(gameObject.GetComponent<StoneInfo>());
+                StoneInfo stoneInfo = gameObject.GetComponent<StoneInfo>();
+                stoneInfo.StonePosition = vec + new Vector3(0f, 1f, 0f);
+                infos.Add(stoneInfo);
             }
             StoneInfos.Add(infos);
         }
-        Debug.Log($"StoneInfos.Count={StoneInfos.Count}");
     }
 
     /// <summary>
@@ -81,7 +93,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 1; i < StoneInfos.Count + 1; i++)
         {
-            for (int j = 1; j < StoneInfos[i].Count + 1; j++)
+            for (int j = 1; j < StoneInfos[i - 1].Count + 1; j++)
             {
                 StoneInfo left = GetStoneInfo(i + LEFT, j);
                 StoneInfo right = GetStoneInfo(i + RIGHT, j);
@@ -98,7 +110,10 @@ public class GameManager : MonoBehaviour
 
     private void StartStoneSetting()
     {
-
+        StoneInstance(4, 4, StoneStatus.Black);
+        StoneInstance(5, 4, StoneStatus.White);
+        StoneInstance(4, 5, StoneStatus.White);
+        StoneInstance(5, 5, StoneStatus.Black);
     }
 
     /// <summary>
@@ -107,21 +122,32 @@ public class GameManager : MonoBehaviour
     /// <param name="stoneStatus">石のステータス</param>
     /// <param name="column_x">横方向に何マス目</param>
     /// <param name="row_z">縦方向に何マス目</param>
-    private void StoneInstance(StoneStatus stoneStatus, int column_x, int row_z)
+    private void StoneInstance(int column_x, int row_z, StoneStatus stoneStatus = StoneStatus.None)
     {
-        if (stoneStatus == StoneStatus.None)
-        {
-            Debug.LogWarning("StoneStatus.NoneでStoneInstanceは生成できません!");
-            return;
-        }
 
         if (StoneInfos.Count >= column_x && column_x >= 1)
         {
-            if (StoneInfos[column_x].Count >= row_z && row_z >= 1)
+
+            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
             {
+
+                if (stoneStatus != StoneStatus.None)
+                {
+                    bool result = StoneStatusChange(stoneStatus, column_x, row_z);
+                    if (result == false)
+                    {
+                        return;
+                    }
+                }
+
                 StoneInfo stoneInfo = StoneInfos[column_x - 1][row_z - 1];
-                stoneInfo.Status = stoneStatus;
-                Instantiate(stoneInfo.StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
+                if (stoneInfo.Status == StoneStatus.None)
+                {
+                    Debug.LogWarning("StoneStatusがNoneなので生成できませんでした。");
+                    return;
+                }
+
+                stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
             }
             else
             {
@@ -133,6 +159,29 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("column_xの値が適切ではありません");
             return;
+        }
+    }
+
+    public bool StoneStatusChange(StoneStatus stoneStatus, int column_x, int row_z)
+    {
+        if (StoneInfos.Count >= column_x && column_x >= 1)
+        {
+            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
+            {
+                StoneInfo stoneInfo = StoneInfos[column_x - 1][row_z - 1];
+                stoneInfo.Status = stoneStatus;
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("row_zの値が適切ではありません");
+                return false;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("column_xの値が適切ではありません");
+            return false;
         }
     }
 

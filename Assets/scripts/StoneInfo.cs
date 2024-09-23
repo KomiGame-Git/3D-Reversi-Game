@@ -13,6 +13,23 @@ public class StoneInfo : MonoBehaviour
     public StoneStatus Status { get; set; } = StoneStatus.None;
     public PutStonePossibility PutPossibility { get; set; } = PutStonePossibility.Impossible;
 
+    public Vector3 StonePosition { get; private set; } = Vector3.zero;
+
+    public Quaternion StoneQuaternion
+    {
+        get
+        {
+            if (Status == StoneStatus.White)
+            {
+                return Quaternion.Euler(180f, 0, 0);
+            }
+            else
+            {
+                return Quaternion.identity;
+            }
+        }
+    }
+
     public StoneInfo LeftStone { get; private set; } = null;
     public StoneInfo RightStone { get; private set; } = null;
     public StoneInfo UpStone { get; private set; } = null;
@@ -62,45 +79,57 @@ public class StoneInfo : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    async void Start()
+    private async void Start()
     {
         OperationHandle = Addressables.LoadAssetAsync<GameObject>(STONEPREFAB_KEY);
         await OperationHandle.Task;
         StonePrefab = OperationHandle.Result;
         Addressables.Release(OperationHandle);
+
+        StonePosition = transform.position + new Vector3(0f, 0.5f, 0f);
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
 
     }
 
     public void SetConnect(StoneInfo left, StoneInfo right, StoneInfo up, StoneInfo down, StoneInfo leftup, StoneInfo rightup, StoneInfo leftdown, StoneInfo rightdown)
     {
-        if(left != null){
+        if (left != null)
+        {
             LeftStone = left;
         }
-        if(right != null){
+        if (right != null)
+        {
             RightStone = right;
         }
-        if(up != null){
+        if (up != null)
+        {
             UpStone = up;
         }
-        if(down != null){
+        if (down != null)
+        {
             DownStone = down;
         }
-        if(leftup != null){
+        if (leftup != null)
+        {
             LeftUpStone = leftup;
         }
-        if(rightup != null){
+        if (rightup != null)
+        {
             RightUpStone = rightup;
         }
-        if(leftdown != null){
+        if (leftdown != null)
+        {
             LeftDownStone = leftdown;
         }
-        if(rightdown != null){
+        if (rightdown != null)
+        {
             RightDownStone = rightdown;
         }
     }
+
+
 }

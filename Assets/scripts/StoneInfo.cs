@@ -131,7 +131,10 @@ public class StoneInfo : MonoBehaviour
         if (Status == StoneStatus.None)
         {
             List<StoneInfo> infos = new List<StoneInfo>();
-            StoneInfo info = UpStone;
+            StoneInfo info = null;
+
+            //左方向のチェック
+            info = LeftStone;
             while (info != null)
             {
                 if (info.Status == StoneStatus.None)
@@ -139,10 +142,176 @@ public class StoneInfo : MonoBehaviour
                     infos.Clear();
                     break;
                 }
-                if (info.Status == putStoneStatus) { break; }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.LeftStone;
+            }
+
+            //右方向のチェック
+            info = RightStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.RightStone;
+            }
+
+            //上方向のチェック
+            info = UpStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
                 infos.Add(info);
                 info = info.UpStone;
             }
+
+            //下方向のチェック
+            info = DownStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.DownStone;
+            }
+
+            //左上方向のチェック
+            info = LeftUpStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.LeftUpStone;
+            }
+
+            //右上方向のチェック
+            info = RightUpStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.RightUpStone;
+            }
+
+            //左下方向のチェック
+            info = LeftDownStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.LeftDownStone;
+            }
+
+            //右下方向のチェック
+            info = RightDownStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus)
+                {
+                    if (infos.Count > 0)
+                    {
+                        ChangeStoneList.AddRange(infos);
+                    }
+                    infos.Clear();
+                    break;
+                }
+                infos.Add(info);
+                info = info.RightDownStone;
+            }
+
+
+            
+
         }
         else
         {

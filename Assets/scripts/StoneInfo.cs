@@ -8,9 +8,10 @@ public class StoneInfo : MonoBehaviour
 {
     public GameObject StoneGameObject { get; set; } = null;
     private AsyncOperationHandle<GameObject> OperationHandle;
-    
+
     public StoneStatus Status { get; set; } = StoneStatus.None;
     public PutStonePossibility PutPossibility { get; set; } = PutStonePossibility.Impossible;
+    public List<StoneInfo> ChangeStoneList { get; set; } = new List<StoneInfo>();
 
     public Vector3 StonePosition { get; set; } = Vector3.zero;
 
@@ -80,7 +81,7 @@ public class StoneInfo : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -122,6 +123,30 @@ public class StoneInfo : MonoBehaviour
         if (rightdown != null)
         {
             RightDownStone = rightdown;
+        }
+    }
+
+    public void PutCheck(StoneStatus putStoneStatus)
+    {
+        if (Status == StoneStatus.None)
+        {
+            List<StoneInfo> infos = new List<StoneInfo>();
+            StoneInfo info = UpStone;
+            while (info != null)
+            {
+                if (info.Status == StoneStatus.None)
+                {
+                    infos.Clear();
+                    break;
+                }
+                if (info.Status == putStoneStatus) { break; }
+                infos.Add(info);
+                info = info.UpStone;
+            }
+        }
+        else
+        {
+            PutPossibility = PutStonePossibility.Impossible;
         }
     }
 

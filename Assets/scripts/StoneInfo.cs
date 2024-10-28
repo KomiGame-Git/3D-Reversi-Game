@@ -1,17 +1,34 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class StoneInfo : MonoBehaviour
 {
-    public GameObject StoneGameObject { get; set; } = null;
-    private AsyncOperationHandle<GameObject> OperationHandle;
+    public GameObject StoneGameObject { private get; set; } = null;
 
     public StoneStatus Status { get; set; } = StoneStatus.None;
     public PutStonePossibility PutPossibility { get; set; } = PutStonePossibility.Impossible;
-    public List<StoneInfo> ChangeStoneList { get; set; } = new List<StoneInfo>();
+    public List<StoneInfo> ChangeStoneList
+    {
+        get
+        {
+            if (GameManager.GameStatusData == GameStatus.Black)
+            {
+                return blackChangeStoneList;
+            }
+            else if (GameManager.GameStatusData == GameStatus.White)
+            {
+                return whiteChangeStoneList;
+            }
+            else
+            {
+                return new List<StoneInfo>();
+            }
+        }
+
+    }
+    private List<StoneInfo> blackChangeStoneList = new List<StoneInfo>();
+    private List<StoneInfo> whiteChangeStoneList = new List<StoneInfo>();
 
     public Vector3 StonePosition { get; set; } = Vector3.zero;
 
@@ -126,7 +143,7 @@ public class StoneInfo : MonoBehaviour
         }
     }
 
-    public void PutCheck(StoneStatus putStoneStatus)
+    public void PutStonePossibilityCheck(StoneStatus putStoneStatus,List<StoneInfo> saveStoneInfos)
     {
         if (Status == StoneStatus.None)
         {
@@ -146,7 +163,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -168,7 +185,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -190,7 +207,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -212,7 +229,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -234,7 +251,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -256,7 +273,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -278,7 +295,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -300,7 +317,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        ChangeStoneList.AddRange(infos);
+                        saveStoneInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -310,7 +327,7 @@ public class StoneInfo : MonoBehaviour
             }
 
 
-            
+
 
         }
         else

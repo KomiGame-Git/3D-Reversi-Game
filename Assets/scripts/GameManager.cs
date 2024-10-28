@@ -1,20 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class GameManager : MonoBehaviour
 {
-    private GameObject StonePrefab { get; set; } = null;
-    private GameObject BlockPrefab { get; set; } = null;
-    private AsyncOperationHandle<GameObject> BlockOperationHandle;
-    private AsyncOperationHandle<GameObject> StoneOperationHandle;
     [SerializeField]
-    private string BLOCKPREFAB_KEY = "Block";
+    private GameObject StonePrefab = null;
     [SerializeField]
-    private string STONEPREFAB_KEY = "Stone";
+    private GameObject BlockPrefab = null;
     [SerializeField]
     private Vector3 BlockGenerationStartPos = Vector3.zero;
     private const float SLIDE_NUM = 9.5f;
@@ -22,42 +15,66 @@ public class GameManager : MonoBehaviour
     public StoneInfo GetStoneInfo(int column_x = 1, int row_z = 1)
     {
         if (StoneInfos.Count == 0) { return null; }
-        if (StoneInfos.Count >= column_x && column_x >= 1)
+        string result = GridCheck(column_x, row_z);
+        if (result == "OK")
         {
-            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
-            {
-                return StoneInfos[column_x - 1][row_z - 1];
-            }
+            return StoneInfos[column_x - 1][row_z - 1];
         }
-        return null;
+        else
+        {
+            return null;
+        }
     }
 
-    public GameStatus GameStatus { get; private set; } = GameStatus.Black;
+    public static GameStatus GameStatusData { get; private set; } = GameStatus.Black;
 
 
     // Start is called before the first frame update
-    private async void Start()
+    private void Start()
     {
-        BlockOperationHandle = Addressables.LoadAssetAsync<GameObject>(BLOCKPREFAB_KEY);
-        await BlockOperationHandle.Task;
-        BlockPrefab = BlockOperationHandle.Result;
-        Addressables.Release(BlockOperationHandle);
-
-        StoneOperationHandle = Addressables.LoadAssetAsync<GameObject>(STONEPREFAB_KEY);
-        await StoneOperationHandle.Task;
-        StonePrefab = StoneOperationHandle.Result;
-        Addressables.Release(StoneOperationHandle);
-
-
         InstantiateBlocks();
         StoneConnecting();
         StartStoneSetting();
+        Debug.Log($"最初は{GameManager.GameStatusData}のターンからです!");
     }
 
     // Update is called once per frame
     private void Update()
     {
 
+    }
+
+    /// <summary>
+    /// colum_xとrow_zが適切な数値化確認する関数
+    /// </summary>
+    /// <param name="column_x">横方向に何マス目</param>
+    /// <param name="row_z">縦方向に何マス目</param>
+    /// <returns> 
+    /// リターンパターン
+    /// <list type="bullet">
+    /// <item>OK</item>
+    /// <item>row_zの値が適切ではありません</item>
+    /// <item>column_xの値が適切ではありません</item>
+    /// </list>
+    /// </returns>
+    private string GridCheck(int column_x = 1, int row_z = 1)
+    {
+
+        if (StoneInfos.Count >= column_x && column_x >= 1)
+        {
+            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
+            {
+                return "OK";
+            }
+            else
+            {
+                return "row_zの値が適切ではありません";
+            }
+        }
+        else
+        {
+            return "column_xの値が適切ではありません";
+        }
     }
 
     /// <summary>
@@ -108,6 +125,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 最初の4つ、石を生成するプログラム
+    /// </summary>
     private void StartStoneSetting()
     {
         StoneInstance(4, 4, StoneStatus.Black);
@@ -124,67 +144,49 @@ public class GameManager : MonoBehaviour
     /// <param name="row_z">縦方向に何マス目</param>
     private void StoneInstance(int column_x, int row_z, StoneStatus stoneStatus = StoneStatus.None)
     {
-
-        if (StoneInfos.Count >= column_x && column_x >= 1)
+        bool result = StoneStatusChange(stoneStatus, column_x, row_z);
+        if (result)
         {
-
-            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
+            StoneInfo stoneInfo = GetStoneInfo(column_x, row_z);
+            if (stoneInfo.Status == StoneStatus.None)
             {
-
-                if (stoneStatus != StoneStatus.None)
-                {
-                    bool result = StoneStatusChange(stoneStatus, column_x, row_z);
-                    if (result == false)
-                    {
-                        return;
-                    }
-                }
-
-                StoneInfo stoneInfo = StoneInfos[column_x - 1][row_z - 1];
-                if (stoneInfo.Status == StoneStatus.None)
-                {
-                    Debug.LogWarning("StoneStatusがNoneなので生成できませんでした。");
-                    return;
-                }
-
-                stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
-            }
-            else
-            {
-                Debug.LogWarning("row_zの値が適切ではありません");
+                Debug.LogWarning("StoneStatusがNoneなので生成できませんでした。");
                 return;
             }
-        }
-        else
-        {
-            Debug.LogWarning("column_xの値が適切ではありません");
-            return;
+            stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
         }
     }
 
+    /// <summary>
+    /// 石のステータスを更新するプログラム
+    /// </summary>
+    /// <param name="stoneStatus">石のステータス</param>
+    /// <param name="column_x">横方向に何マス目</param>
+    /// <param name="row_z">縦方向に何マス目</param>
+    /// <returns></returns>
     public bool StoneStatusChange(StoneStatus stoneStatus, int column_x, int row_z)
     {
-        if (StoneInfos.Count >= column_x && column_x >= 1)
+        string result = GridCheck(column_x, row_z);
+        if (result == "OK")
         {
-            if (StoneInfos[column_x - 1].Count >= row_z && row_z >= 1)
+            StoneInfo stoneInfo = GetStoneInfo(column_x, row_z);
+            if (stoneInfo == null)
             {
-                StoneInfo stoneInfo = StoneInfos[column_x - 1][row_z - 1];
+                Debug.LogWarning("column_x,row_zの値が適切ではありません");
+                return false;
+            }
+            else
+            {
                 stoneInfo.Status = stoneStatus;
                 return true;
             }
-            else
-            {
-                Debug.LogWarning("row_zの値が適切ではありません");
-                return false;
-            }
         }
         else
         {
-            Debug.LogWarning("column_xの値が適切ではありません");
+            Debug.LogWarning(result);
             return false;
         }
     }
-
 }
 
 /// <summary>

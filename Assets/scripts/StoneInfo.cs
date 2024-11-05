@@ -25,7 +25,6 @@ public class StoneInfo : MonoBehaviour
                 return new List<StoneInfo>();
             }
         }
-
     }
     private List<StoneInfo> blackChangeStoneList = new List<StoneInfo>();
     private List<StoneInfo> whiteChangeStoneList = new List<StoneInfo>();
@@ -55,6 +54,9 @@ public class StoneInfo : MonoBehaviour
     public StoneInfo RightUpStone { get; private set; } = null;
     public StoneInfo LeftDownStone { get; private set; } = null;
     public StoneInfo RightDownStone { get; private set; } = null;
+
+    private float ReversiElapsedTime;
+    private const float REVERSI_TIME = 2f;
 
     public bool IsLeftConnected()
     {
@@ -107,6 +109,17 @@ public class StoneInfo : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 隣接するマスのStoneInfoデータを設定
+    /// </summary>
+    /// <param name="left">左</param>
+    /// <param name="right">右</param>
+    /// <param name="up">上</param>
+    /// <param name="down">下</param>
+    /// <param name="leftup">左上</param>
+    /// <param name="rightup">右上</param>
+    /// <param name="leftdown">左下</param>
+    /// <param name="rightdown">右下</param>
     public void SetConnect(StoneInfo left, StoneInfo right, StoneInfo up, StoneInfo down, StoneInfo leftup, StoneInfo rightup, StoneInfo leftdown, StoneInfo rightdown)
     {
         if (left != null)
@@ -143,15 +156,20 @@ public class StoneInfo : MonoBehaviour
         }
     }
 
-    public void PutStonePossibilityCheck(StoneStatus putStoneStatus,List<StoneInfo> saveStoneInfos)
+    /// <summary>
+    /// 指定したStoneSatusに応じて、ひっくり返せるコマのリストを取得する
+    /// </summary>
+    /// <param name="putStoneStatus">マスに置きたい石の状態</param>
+    /// <returns></returns>
+    private List<StoneInfo> GetReversibleStones(StoneStatus putStoneStatus)
     {
+        List<StoneInfo> returnInfos = new List<StoneInfo>();
         if (Status == StoneStatus.None)
         {
             List<StoneInfo> infos = new List<StoneInfo>();
-            StoneInfo info = null;
 
             //左方向のチェック
-            info = LeftStone;
+            StoneInfo info = LeftStone;
             while (info != null)
             {
                 if (info.Status == StoneStatus.None)
@@ -163,7 +181,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -185,7 +203,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -207,7 +225,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -229,7 +247,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -251,7 +269,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -273,7 +291,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -295,7 +313,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -317,7 +335,7 @@ public class StoneInfo : MonoBehaviour
                 {
                     if (infos.Count > 0)
                     {
-                        saveStoneInfos.AddRange(infos);
+                        returnInfos.AddRange(infos);
                     }
                     infos.Clear();
                     break;
@@ -325,10 +343,31 @@ public class StoneInfo : MonoBehaviour
                 infos.Add(info);
                 info = info.RightDownStone;
             }
+        }
 
+        return returnInfos;
 
+    }
 
+    /// <summary>
+    /// PutPossibilityの状態を更新する
+    /// </summary>
+    public void PutPossibilityUpdate()
+    {
+        blackChangeStoneList = GetReversibleStones(StoneStatus.Black);
+        whiteChangeStoneList = GetReversibleStones(StoneStatus.White);
 
+        if (blackChangeStoneList.Count > 0 && whiteChangeStoneList.Count > 0)
+        {
+            PutPossibility = PutStonePossibility.Possible_BW;
+        }
+        else if (blackChangeStoneList.Count > 0)
+        {
+            PutPossibility = PutStonePossibility.Possible_B;
+        }
+        else if (whiteChangeStoneList.Count > 0)
+        {
+            PutPossibility = PutStonePossibility.Possible_W;
         }
         else
         {
@@ -336,5 +375,38 @@ public class StoneInfo : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// stoneをREVERSI_TIMEの秒数で回転させるコルーチン
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator StoneRotate()
+    {
+        while (ReversiElapsedTime < REVERSI_TIME)
+        {
+            Quaternion startQuaternion = StoneGameObject.transform.rotation;
+            StoneGameObject.transform.rotation = Quaternion.Slerp(startQuaternion, StoneQuaternion, ReversiElapsedTime / REVERSI_TIME);
+            yield return null;
+            ReversiElapsedTime += Time.deltaTime;
+        }
+        ReversiElapsedTime = 0f;
+    }
 
+    /// <summary>
+    /// ひっくり返せる石をすべてひっくり返すコルーチン
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator StonesReverse()
+    {
+        List<Coroutine> StoneRotateCoroutineList = new List<Coroutine>();
+        foreach (StoneInfo stoneInfo in ChangeStoneList)
+        {
+            StoneRotateCoroutineList.Add(StartCoroutine(stoneInfo.StoneRotate()));
+            yield return null;
+        }
+        foreach (Coroutine stoneRotateCoroutine in StoneRotateCoroutineList)
+        {
+            yield return stoneRotateCoroutine;
+        }
+
+    }
 }

@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Vector3 BlockGenerationStartPos = Vector3.zero;
     private const float SLIDE_NUM = 9.5f;
-    private List<List<StoneInfo>> StoneInfos = new();
+    private List<List<StoneInfo>> StoneInfos = new List<List<StoneInfo>>();
     public StoneInfo GetStoneInfo(int column_x = 1, int row_z = 1)
     {
         if (StoneInfos.Count == 0) { return null; }
@@ -130,60 +130,46 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void StartStoneSetting()
     {
-        StoneInstance(4, 4, StoneStatus.Black);
-        StoneInstance(5, 4, StoneStatus.White);
-        StoneInstance(4, 5, StoneStatus.White);
-        StoneInstance(5, 5, StoneStatus.Black);
+        StoneInstance(GetStoneInfo(4, 4), StoneStatus.Black);
+        StoneInstance(GetStoneInfo(5, 4), StoneStatus.White);
+        StoneInstance(GetStoneInfo(4, 5), StoneStatus.White);
+        StoneInstance(GetStoneInfo(5, 5), StoneStatus.Black);
     }
 
     /// <summary>
     /// 石を生成
     /// </summary>
+    /// <param name="stoneInfo">石の情報</param>
     /// <param name="stoneStatus">石のステータス</param>
-    /// <param name="column_x">横方向に何マス目</param>
-    /// <param name="row_z">縦方向に何マス目</param>
-    private void StoneInstance(int column_x, int row_z, StoneStatus stoneStatus = StoneStatus.None)
+    private void StoneInstance(StoneInfo stoneInfo, StoneStatus stoneStatus = StoneStatus.None)
     {
-        bool result = StoneStatusChange(stoneStatus, column_x, row_z);
-        if (result)
+        if (stoneInfo != null && stoneStatus != StoneStatus.None)
         {
-            StoneInfo stoneInfo = GetStoneInfo(column_x, row_z);
-            if (stoneInfo.Status == StoneStatus.None)
+            bool result = StoneStatusChange(stoneInfo, stoneStatus);
+            if (result)
             {
-                Debug.LogWarning("StoneStatusがNoneなので生成できませんでした。");
-                return;
+                stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
             }
-            stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
         }
+
     }
 
     /// <summary>
     /// 石のステータスを更新するプログラム
     /// </summary>
+    /// <param name="stoneInfo">石の情報</param>
     /// <param name="stoneStatus">石のステータス</param>
-    /// <param name="column_x">横方向に何マス目</param>
-    /// <param name="row_z">縦方向に何マス目</param>
     /// <returns></returns>
-    public bool StoneStatusChange(StoneStatus stoneStatus, int column_x, int row_z)
+    public bool StoneStatusChange(StoneInfo stoneInfo, StoneStatus stoneStatus)
     {
-        string result = GridCheck(column_x, row_z);
-        if (result == "OK")
+        if (stoneInfo != null)
         {
-            StoneInfo stoneInfo = GetStoneInfo(column_x, row_z);
-            if (stoneInfo == null)
-            {
-                Debug.LogWarning("column_x,row_zの値が適切ではありません");
-                return false;
-            }
-            else
-            {
-                stoneInfo.Status = stoneStatus;
-                return true;
-            }
+            stoneInfo.Status = stoneStatus;
+            return true;
         }
         else
         {
-            Debug.LogWarning(result);
+            Debug.LogWarning("stoneInfoがnull値です");
             return false;
         }
     }

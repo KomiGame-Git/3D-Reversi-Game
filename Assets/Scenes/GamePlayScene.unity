@@ -151,8 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e12b81fe75652db43a90fab6a4dcecec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BLOCKPREFAB_KEY: Block
-  STONEPREFAB_KEY: Stone
+  StonePrefab: {fileID: 5629914123393478972, guid: b1679932e1b2afe4da1246a9a50a8e62, type: 3}
+  BlockPrefab: {fileID: 1278889215773060658, guid: 6e61d200c5bd3594381c024e89f82029, type: 3}
   BlockGenerationStartPos: {x: 0, y: 0, z: 0}
 --- !u!4 &366302692
 Transform:

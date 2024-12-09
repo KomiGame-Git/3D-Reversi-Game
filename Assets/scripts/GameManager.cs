@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ public class GameManager : MonoBehaviour
     }
 
     public static GameStatus GameStatusData { get; private set; } = GameStatus.Black;
-
+    private GameStatus NextTurn { get; set; } = GameStatus.White;
 
     // Start is called before the first frame update
     private void Start()
@@ -35,13 +36,68 @@ public class GameManager : MonoBehaviour
         InstantiateBlocks();
         StoneConnecting();
         StartStoneSetting();
+        StonesPutPossibilityUpdate();
         Debug.Log($"最初は{GameManager.GameStatusData}のターンからです!");
+
+        StartCoroutine(GameUpdate());
+
     }
 
     // Update is called once per frame
     private void Update()
     {
 
+
+    }
+
+    private IEnumerator GameUpdate()
+    {
+        while (true)
+        {
+            if (GameManager.GameStatusData == GameStatus.PutPossibilityUpdateing)
+            {
+                StonesPutPossibilityUpdate();
+                GameManager.GameStatusData = NextTurn;
+                if (NextTurn == GameStatus.Black)
+                {
+                    NextTurn = GameStatus.White;
+                }
+                else
+                {
+                    NextTurn = GameStatus.Black;
+                }
+            }
+
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit))
+                {
+                    StoneInfo stoneInfo = hit.transform.gameObject.GetComponent<StoneInfo>();
+                    if (stoneInfo != null && stoneInfo.PutPossibility != PutStonePossibility.Impossible)
+                    {
+                        if (GameManager.GameStatusData == GameStatus.Black)
+                        {
+                            GameManager.GameStatusData = GameStatus.StoneChange;
+                            StoneInstance(stoneInfo, StoneStatus.Black);
+                            yield return stoneInfo.StonesReverse(StoneStatus.Black);
+                        }
+                        else
+                        {
+                            GameManager.GameStatusData = GameStatus.StoneChange;
+                            StoneInstance(stoneInfo, StoneStatus.White);
+                            yield return stoneInfo.StonesReverse(StoneStatus.White);
+                        }
+                    }
+
+                    GameManager.GameStatusData = GameStatus.PutPossibilityUpdateing;
+                }
+            }
+
+
+            yield return null;
+        }
     }
 
     /// <summary>
@@ -92,6 +148,7 @@ public class GameManager : MonoBehaviour
                 GameObject gameObject = Instantiate(BlockPrefab, vec, Quaternion.identity);
                 StoneInfo stoneInfo = gameObject.GetComponent<StoneInfo>();
                 stoneInfo.StonePosition = vec + new Vector3(0f, 1f, 0f);
+                stoneInfo.GameManager = this;
                 infos.Add(stoneInfo);
             }
             StoneInfos.Add(infos);
@@ -145,34 +202,25 @@ public class GameManager : MonoBehaviour
     {
         if (stoneInfo != null && stoneStatus != StoneStatus.None)
         {
-            bool result = StoneStatusChange(stoneInfo, stoneStatus);
-            if (result)
-            {
-                stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
-            }
+            stoneInfo.StatusChange(stoneStatus);
+            stoneInfo.StoneGameObject = Instantiate(StonePrefab, stoneInfo.StonePosition, stoneInfo.StoneQuaternion);
         }
-
     }
 
     /// <summary>
-    /// 石のステータスを更新するプログラム
+    /// 石を置けるか確認
     /// </summary>
-    /// <param name="stoneInfo">石の情報</param>
-    /// <param name="stoneStatus">石のステータス</param>
-    /// <returns></returns>
-    public bool StoneStatusChange(StoneInfo stoneInfo, StoneStatus stoneStatus)
+    public void StonesPutPossibilityUpdate()
     {
-        if (stoneInfo != null)
+        foreach (List<StoneInfo> Infos in StoneInfos)
         {
-            stoneInfo.Status = stoneStatus;
-            return true;
-        }
-        else
-        {
-            Debug.LogWarning("stoneInfoがnull値です");
-            return false;
+            foreach (StoneInfo info in Infos)
+            {
+                info.PutPossibilityUpdate();
+            }
         }
     }
+
 }
 
 /// <summary>
@@ -184,6 +232,7 @@ public enum GameStatus
     Black,
     White,
     StoneChange,
+    PutPossibilityUpdateing,
 }
 
 /// <summary>

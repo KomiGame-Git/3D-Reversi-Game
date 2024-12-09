@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class StoneInfo : MonoBehaviour
 {
     public GameObject StoneGameObject { private get; set; } = null;
+    public GameManager GameManager { private get; set; } = null;
 
-    public StoneStatus Status { get; set; } = StoneStatus.None;
+    private StoneStatus Status { get; set; } = StoneStatus.None;
     public PutStonePossibility PutPossibility { get; set; } = PutStonePossibility.Impossible;
     public List<StoneInfo> ChangeStoneList
     {
@@ -46,14 +48,14 @@ public class StoneInfo : MonoBehaviour
         }
     }
 
-    public StoneInfo LeftStone { get; private set; } = null;
-    public StoneInfo RightStone { get; private set; } = null;
-    public StoneInfo UpStone { get; private set; } = null;
-    public StoneInfo DownStone { get; private set; } = null;
-    public StoneInfo LeftUpStone { get; private set; } = null;
-    public StoneInfo RightUpStone { get; private set; } = null;
-    public StoneInfo LeftDownStone { get; private set; } = null;
-    public StoneInfo RightDownStone { get; private set; } = null;
+    private StoneInfo LeftStone { get; set; } = null;
+    private StoneInfo RightStone { get; set; } = null;
+    private StoneInfo UpStone { get; set; } = null;
+    private StoneInfo DownStone { get; set; } = null;
+    private StoneInfo LeftUpStone { get; set; } = null;
+    private StoneInfo RightUpStone { get; set; } = null;
+    private StoneInfo LeftDownStone { get; set; } = null;
+    private StoneInfo RightDownStone { get; set; } = null;
 
     private float ReversiElapsedTime;
     private const float REVERSI_TIME = 2f;
@@ -154,6 +156,15 @@ public class StoneInfo : MonoBehaviour
         {
             RightDownStone = rightdown;
         }
+    }
+
+    /// <summary>
+    /// 石のステータスを更新するプログラム
+    /// </summary>
+    /// <param name="stoneStatus">石のステータス</param>
+    public void StatusChange(StoneStatus stoneStatus)
+    {
+        Status = stoneStatus;
     }
 
     /// <summary>
@@ -394,9 +405,15 @@ public class StoneInfo : MonoBehaviour
     /// <summary>
     /// ひっくり返せる石をすべてひっくり返すコルーチン
     /// </summary>
-    /// <returns></returns>
-    public IEnumerator StonesReverse()
+    public IEnumerator StonesReverse(StoneStatus changeStatus)
     {
+        Debug.Log(ChangeStoneList.Count);
+        ChangeStoneList.ForEach(t => { Debug.Log(t.StonePosition); });
+        foreach (StoneInfo stoneInfo in ChangeStoneList)
+        {
+            stoneInfo.StatusChange(changeStatus);
+            yield return null;
+        }
         List<Coroutine> StoneRotateCoroutineList = new List<Coroutine>();
         foreach (StoneInfo stoneInfo in ChangeStoneList)
         {
@@ -407,6 +424,8 @@ public class StoneInfo : MonoBehaviour
         {
             yield return stoneRotateCoroutine;
         }
-
     }
+
+
+
 }
